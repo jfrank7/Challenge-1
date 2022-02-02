@@ -50,6 +50,21 @@ df <- df_transactional %>%
   filter(lubridate::month(date) == 3)
 
 # what’s the average daily items among small and big machines?
+active_days<-df_transactional %>% 
+  group_by(machine,day=lubridate::day(date)) %>%
+  summarise(n = n()) %>%
+  group_by(machine) %>%
+  summarise(daysactive=n())
+
+sold_machine<-df_transactional %>% 
+  group_by(machine) %>%
+  summarise(n = n())
+
+df_machine$meansold<-sold_machine$n/active_days$daysactive
+
+df_machine%>%
+  group_by(small_machine) %>%
+  summarise(mean(meansold))
 
 
 # Why do you think there is such a difference? Give at least 2 possible reasons.
