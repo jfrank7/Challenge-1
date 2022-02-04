@@ -50,26 +50,32 @@ df <- df_transactional %>%
   filter(lubridate::month(date) == 3)
 
 # what’s the average daily items among small and big machines?
-active_days<-df_transactional %>% 
-  group_by(machine,day=lubridate::day(date)) %>%
-  summarise(n = n()) %>%
+active_days <- df %>% 
+  group_by(machine, date) %>%
+  summarise() %>%
   group_by(machine) %>%
-  summarise(daysactive=n())
+  summarise(daysactive = n())
 
-sold_machine<-df_transactional %>% 
+sold_machine <- df %>% 
   group_by(machine) %>%
-  summarise(n = n())
+  summarise(transactions = n())
 
-df_machine$meansold<-sold_machine$n/active_days$daysactive
+unique_df <- df %>% 
+  group_by(machine) %>% 
+  summarise()
 
-df_machine%>%
+unique_machine <- df_machine%>% 
+  filter(machine %in% unique_df$machine)
+
+unique_machine$meansold <- sold_machine$transactions / active_days$daysactive
+
+unique_machine %>%
   group_by(small_machine) %>%
   summarise(mean(meansold))
 
-
 # Why do you think there is such a difference? Give at least 2 possible reasons.
-# Reason 1:
-# Reason 2:
+# Reason 1: Because bigger machines may have more and more varied product that results in more sales
+# Reason 2: Because bigger machines are visually more attractive and thus generate more interest/sales
 
 # Note: To calculate daily sales consider only the “active days” of a machine to exclude machine failures.
 # For that, divide the number of items sold by a machine by the total number of “distinct” days. 
