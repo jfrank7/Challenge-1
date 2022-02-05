@@ -77,10 +77,3 @@ unique_machine %>%
 # Reason 1: Because bigger machines may have more and more varied product that results in more sales
 # Reason 2: Because bigger machines are visually more attractive and thus generate more interest/sales
 
-# Note: To calculate daily sales consider only the “active days” of a machine to exclude machine failures.
-# For that, divide the number of items sold by a machine by the total number of “distinct” days. 
-
-### 2
-### 3
-### 4
-### 5

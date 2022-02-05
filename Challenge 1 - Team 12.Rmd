@@ -1,0 +1,195 @@
+---
+title: "Challenge 1 - Team 12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Vendex Challenge
+## Section A - Group 8
+- Luciana
+- Matteo Augenti
+- Kiko
+- Nicolas
+- Jose Frank Cuellar
+
+```{r Initialization}
+# Clearing workspace
+rm(list = ls())
+
+library(tidyverse)
+
+# Read CSV files (transactional is zipped so we use unz())
+df_machine <- read.csv('./Data/machine_data.csv')
+df_product <- read.csv('./Data/product_data.csv')
+df_transactional <- read.csv(unz("./Data/transactional_data.csv.zip", 
+                                 'transactional_data.csv'))
+```
+
+
+### **1 General overview of the data:**
+#### **a. How many machines are there?**
+```{r 1A}
+cat('There are', length(df_machine$machine), 'unique machines.')
+```
+
+#### **b. What percentage of them are small?**
+```{r 1B}
+cat(scales::percent(mean(df_machine$small_machine)), 'of the machines are small.')
+```
+
+#### **c. How do they distribute in terms of location type i.e. transport, petrol station? Products**
+```{r 1C}
+plyr::count(df_machine, 'location_type')
+```
+
+#### **d. How many products are there?**
+```{r 1D1}
+cat('There are', length(df_product$product_name), 'unique products.')
+```
+
+#### **Which category has the highest number of products?**
+```{r 1D2}
+head(plyr::count(df_product, 'category'), 1)
+```
+
+#### **e. Which category has the highest and lowest average price?**
+```{r 1E1}
+df_product %>% 
+  group_by(category) %>% 
+  summarise_at(c('price'), mean) %>% 
+  arrange(desc(price))
+```
+##### *Highest: Milk based 3.42*
+##### *Lowest: Sugar candy 2.3*
+
+#### **And within snacks or drinks?**
+```{r 1E2}
+df_product %>% 
+  group_by(type_drink_snack) %>% 
+  summarise_at(c('price'), mean) %>% 
+  arrange(desc(price))
+```
+
+#### **f. Restricting the transactional data to March 2017, what’s the average daily items among small and big machines?**
+```{r 1F}
+df <- df_transactional %>% 
+  filter(lubridate::month(date) == 3)
+
+active_days <- df %>% 
+  group_by(machine, date) %>%
+  summarise() %>%
+  group_by(machine) %>%
+  summarise(daysactive = n())
+
+sold_machine <- df %>% 
+  group_by(machine) %>%
+  summarise(transactions = n())
+
+unique_df <- df %>% 
+  group_by(machine) %>% 
+  summarise()
+
+unique_machine <- df_machine%>% 
+  filter(machine %in% unique_df$machine)
+
+unique_machine$meansold <- sold_machine$transactions / active_days$daysactive
+
+unique_machine %>%
+  group_by(small_machine) %>%
+  summarise(mean(meansold))
+```
+
+#### **Why do you think there is such a difference? Give at least 2 possible reasons.**
+##### *Reason 1: Because bigger machines may have more and more varied product that results in more sales*
+##### *Reason 2: Because bigger machines are visually more attractive and thus generate more interest/sales*
+
+
+### **2 Consider the following plot of the number of items sold per machine and day**
+```{r 2}
+# Find a way to recreate the plot shown in the PDF without merging tables (for practice)
+```
+
+#### **Let us focus on the different patterns present in the data:**
+#### **a. Is there a general trend in the number of snacks and drinks as the months progress from January to April?**
+##### *There seems to be a general trend for both types of products*
+#### **Is it the same for snacks and drinks? Why do you think that might be so?**
+##### *No, the trend is different with snacks staying roughly about the same throughout those months with a one time minimum items increase during February.*
+##### *This might be because the need for snacks is very consistent whereas the need for drinks increases during the warmer months when people tend to be more thirsty (Increased dehydration)*
+
+#### **b. Is there a shorter time period trend as well? Is it the same for snacks and drinks?**
+##### *Yes, during Jan - Feb, drinks are at their lowest with a in month down trend*
+#### **What do you think might be the cause?**
+##### *The cause is likely due to those months often being the coldest during the year and thus there is less need/want for drinks (Less dehydration)*
+
+
+### **3 Given the following distribution of average income:**
+```{r 3}
+summary(df_machine$income_average) # Real data does not match provided example, ask about it
+```
+
+#### Min.   1st Qu.  Median  Mean    3rd Qu.    Max.       NA's
+#### 25540   48860   54100  162900   60960     9777000      97
+
+#### **a) Are there outliers?**
+##### *Yes*
+
+#### **How would you treat them?**
+##### *I would limit their values to a fixed one - Not sure*
+
+#### **b) Can you give three possibilities on how to treat the NA cases?**
+##### *Need to investigate this*
+#### **Which option would you choose and why?**
+##### *The best one*
+
+##### *Hint: Take a look at the relation between having NA in the income average and the average daily items.*
+
+
+### **4 According to the following boxplot, what is the median number of hotels in the machine area?**
+```{r 4}
+boxplot(df_machine$num_hotels, outline = F)
+```
+
+#### *According to the boxplot and signaled by the thick black line at the bottom, we can interpret that the median is equal to 0.*
+
+
+### **5 In this exercise we will build a location score that tells us what’s the average daily items per machine depending on the location it is placed. This model could be used to:**
+#### **a) Decide in which locations to place new machines**
+#### **b) Construct a benchmark for each machine: how much should it sell according to its location? This can be used to detect problems in machines (i.e. illumination, bad placement within a station etc.)**
+#### **For that, you will build a linear model to predict machine daily items using the following features:**
+#### **1. Machine size (big or small)**
+#### **2. Income of the area**
+#### **3. Number of routes in the area**
+#### **4. Number of hotels with 4 and 5 stars in the area**
+#### **5. 0-1 Indicator of whether the machine has train_AvgDailyPassengers informed, meaning it is a petrol station or other type of location**
+```{r 5}
+# Some badass code here
+```
+
+##### *Hint: You can generate an indicator variable of this sort using the syntax*
+##### *dt <- dt %>% mutate(new_column_name = ifelse(is.na(column_name),1,0))*
+
+
+### **6 Number of other Vendex machines in the area**
+#### **Answer the following questions:**
+#### **a) Do all variables show statistical significance? Which ones doesn’t? How do you know?**
+##### *Hint: Recall that to check the parameters of a glm model called “model1” you need to run summary(model1)*
+
+#### **b) Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance?**
+
+#### **Train the model constructed in the previous question (b) removing the variables that do NOT show statistical significance calling it final_model and with that model answer the following questions**
+
+#### **c) How many daily items less do small machines sell all other factors remaining equal?**
+
+#### **d) What’s effect on machine sales does having other nearby machines all other factors remaining equal?**
+
+#### **e) Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the top20%/bottom20% ratio?**
+
+#### **f) Given the following 2 locations for a big machine:**
+#### **1. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no nearby machines**
+#### **2. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes nearby, 3 nearby Vendex machines**
+
+#### **Which location would you choose and why?**
+##### *I would choose ... because ...*
